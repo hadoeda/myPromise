@@ -2,14 +2,16 @@
 	return function(callback){
 
 		var resolveCallbacks = [];
-		this.then = fuction(resolveCallback){
-			resolveCallbacks.push(resolveCallback);
+		this.then = function(resolveCallback){
+            if(status === 'resolved') resolveCallback(resData);
+			else if(status === 'pending') resolveCallbacks.push(resolveCallback);
 			return this;
 		};
 
 		var rejectCallbacks = [];
 		this.catch = function(rejectCallback){
-			rejectsCallbacks.push(rejectCallback);
+            if(status === 'rejected') rejectCallback(rejectCallback);
+            else if(status === 'pending') rejectsCallbacks.push(rejectCallback);
 			return this;
 		};
 
@@ -23,10 +25,15 @@
 			status = 'resolved';
 		}
 
-		function reject(data){
+        var rejError = undefined;
+		function reject(error){
+            rejError = error;
 			rejectCallbacks.forEach(function(clb){
 				clb(data);
-			});
-		}
-	}
+            });
+            status = 'rejected';
+        }
+        
+        callback(resolve, reject);
+	};
 })();
